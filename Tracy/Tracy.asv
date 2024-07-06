@@ -1,0 +1,64 @@
+% Tracy Method, By: Mehdi Hosseini 93134029
+
+
+clc
+clear
+Pi=input('Enter the initial pressure (MAX:4350):  ');
+Pf=input('Enter the final pressure that you want to have your data there (min:3350) : ');
+Swc=input('Enter Swc: ');
+N=input('Enter N in MMSTB: (ex:15) ');
+Boi=1.43; 
+Rsi=840;
+MUo=1.7;
+MUg=0.023;
+
+i=0;
+P=Pi;
+
+Gor3=840;
+Gor2=840;
+Np1=0;
+Gp1=0;
+while P>Pf
+    er=1000;
+    i=i+1;
+    P=P-200;
+%By fitting data using Excel we have:
+Bo = 9e-05*P + 1.0473;
+Bg = (-0.0016*P + 13.903)*10^(-4);
+Rs = 0.2086*P - 56.333;
+Den=(Bo-Boi)+(Rsi-Rs)*Bg;
+Phio=(Bo-Rs*Bg)/Den;
+Phig=Bg/Den;
+Np2=Np1;
+Gp2=Gp1;
+    while er>50
+        Gor2=Gor2+1;
+        Gor1=Gor3;
+        Gorav=(Gor1+Gor2)/2;
+        
+        DelNp=(1-(Np2*Phio+Gp2*Phig))/(Phio+Gorav*Phig);
+        Np1=Np2+DelNp;
+        So=(1-Np1/N)*Bo/1.43*(1-Swc);
+        Sg=1-Swc-So;
+        Kro = 0.51*exp(-10.74*Sg);
+        Krg = 0.6757*Sg^(1.8513);
+        FKr=Krg/Kro;
+        Gor3=Rs+FKr*MUo*Bo/(MUg*Bg);
+        er=abs(Gor2-Gor3);
+        DelGp=DelNp*Gorav;
+        Gp1=Np1*Gorav;
+        Np=N*Np1;
+        Gp=N*Gp1;
+    end
+    disp(['the ', num2str(i), 'th step oil production would be: ' ,num2str(Np) , ' MSTB']);
+    disp(['the ', num2str(i), 'th step gas production would be: ' ,num2str(Gp) , ' MSTB']);
+    np(i)=Np;
+    gp(i)=Gp;
+    SNp=sum(np);
+    SGp=sum(gp);
+end
+ disp(['the cumulative Oil production would be: ' , num2str(SNp), ' MSTB']);
+ disp(['the cumulative Gas production would be: ' , num2str(SGp), ' MSCF']);
+
+
